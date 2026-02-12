@@ -1,0 +1,34 @@
+{
+  "manifest_version": 3,
+  "name": "Password Manager - GPG Decryption",
+  "version": "1.0",
+  "description": "Right-click on password fields to decrypt GPG-encrypted passwords from clipboard with auto-sanitization",
+  "permissions": [
+    "clipboard-read",
+    "clipboard-write",
+    "scripting",
+    "activeTab"
+  ],
+  "host_permissions": [
+    "<all_urls>"
+  ],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "content_scripts": [
+    {
+      "matches": ["<all_urls>"],
+      "js": ["content.js"],
+      "run_at": "document_start"
+    }
+  ],
+  "action": {
+    "default_popup": "popup.html",
+    "default_title": "Password Manager"
+  },
+  "icons": {
+    "16": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'><text y='14' font-size='16'>🔐</text></svg>",
+    "48": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 48 48'><text y='40' font-size='40'>🔐</text></svg>",
+    "128": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 128 128'><text y='110' font-size='110'>🔐</text></svg>"
+  }
+}

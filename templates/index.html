@@ -1,0 +1,706 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Password Manager - GPG Encryption</title>
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='75' font-size='75'>🔐</text></svg>">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+        
+        .container {
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            max-width: 700px;
+            width: 100%;
+            padding: 40px;
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+            border-bottom: 3px solid #667eea;
+            padding-bottom: 20px;
+        }
+        
+        .header h1 {
+            color: #333;
+            font-size: 32px;
+            margin-bottom: 10px;
+        }
+        
+        .header p {
+            color: #666;
+            font-size: 14px;
+        }
+        
+        .password-section {
+            margin-bottom: 30px;
+            padding: 20px;
+            background: #f8f9ff;
+            border-radius: 10px;
+            border-left: 4px solid #667eea;
+        }
+        
+        .section-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 15px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        
+        .input-group {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+            flex-wrap: wrap;
+        }
+        
+        input[type="text"], input[type="number"] {
+            flex: 1;
+            min-width: 150px;
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: border-color 0.3s;
+        }
+        
+        input[type="text"]:focus, input[type="number"]:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        
+        .button-group {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+        
+        button {
+            padding: 12px 20px;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-size: 13px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            min-width: 140px;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            flex: 1;
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(102, 126, 234, 0.4);
+        }
+        
+        .btn-primary:active {
+            transform: translateY(0);
+        }
+        
+        .btn-secondary {
+            background: #e8e8ff;
+            color: #667eea;
+            flex: 1;
+        }
+        
+        .btn-secondary:hover {
+            background: #d8d8ff;
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(102, 126, 234, 0.2);
+        }
+        
+        .btn-success {
+            background: #10b981;
+            color: white;
+            flex: 1;
+        }
+        
+        .btn-success:hover {
+            background: #059669;
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(16, 185, 129, 0.4);
+        }
+        
+        .btn-warning {
+            background: #f59e0b;
+            color: white;
+        }
+        
+        .btn-warning:hover {
+            background: #d97706;
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(245, 158, 11, 0.4);
+        }
+        
+        .btn-danger {
+            background: #ef4444;
+            color: white;
+        }
+        
+        .btn-danger:hover {
+            background: #dc2626;
+        }
+        
+        .password-display {
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            border: 2px solid #ddd;
+            font-family: 'Courier New', monospace;
+            font-size: 16px;
+            word-break: break-all;
+            color: #333;
+            margin-top: 10px;
+            line-height: 1.6;
+        }
+        
+        .encrypted-display {
+            background: #f0f0f0;
+            padding: 12px;
+            border-radius: 6px;
+            border: 1px solid #ccc;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            max-height: 80px;
+            overflow-y: auto;
+            color: #666;
+            margin-top: 10px;
+            line-height: 1.4;
+        }
+        
+        .status-message {
+            padding: 12px 15px;
+            border-radius: 8px;
+            margin-top: 15px;
+            font-size: 13px;
+            display: none;
+        }
+        
+        .status-message.show {
+            display: block;
+        }
+        
+        .status-message.success {
+            background: #d1fae5;
+            color: #065f46;
+            border-left: 4px solid #10b981;
+        }
+        
+        .status-message.error {
+            background: #fee2e2;
+            color: #7f1d1d;
+            border-left: 4px solid #ef4444;
+        }
+        
+        .status-message.info {
+            background: #dbeafe;
+            color: #0c2d6b;
+            border-left: 4px solid #3b82f6;
+        }
+        
+        .feature-list {
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 15px;
+            border: 1px solid #ddd;
+        }
+        
+        .feature-list h3 {
+            color: #333;
+            font-size: 13px;
+            margin-bottom: 10px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .feature-list ul {
+            list-style: none;
+            font-size: 12px;
+            color: #666;
+        }
+        
+        .feature-list li {
+            padding: 5px 0;
+            display: flex;
+            align-items: center;
+        }
+        
+        .feature-list li:before {
+            content: "✓";
+            color: #10b981;
+            font-weight: bold;
+            margin-right: 8px;
+            font-size: 14px;
+        }
+        
+        .length-input {
+            width: 80px !important;
+            min-width: auto;
+        }
+        
+        .sanitization-log {
+            background: #f5f5f5;
+            padding: 12px;
+            border-radius: 6px;
+            margin-top: 10px;
+            max-height: 200px;
+            overflow-y: auto;
+            font-size: 11px;
+            color: #666;
+            font-family: 'Courier New', monospace;
+        }
+        
+        .sanitization-log button {
+            display: inline-block;
+            width: auto;
+            min-width: 120px;
+            padding: 8px 12px;
+            margin: 5px 5px 5px 0;
+            font-size: 11px;
+        }
+        
+        .password-field {
+            display: flex;
+            align-items: center;
+            padding: 12px;
+            background: white;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            cursor: text;
+            transition: all 0.3s;
+        }
+        
+        .password-field:hover {
+            border-color: #667eea;
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.1);
+        }
+        
+        .password-field:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+        }
+        
+        .field-label {
+            font-weight: 600;
+            color: #333;
+            margin-right: 10px;
+            min-width: 80px;
+            font-size: 13px;
+        }
+        
+        .field-input {
+            flex: 1;
+            border: none;
+            background: transparent;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            color: #333;
+            letter-spacing: 2px;
+        }
+        
+        .field-input:focus {
+            outline: none;
+        }
+        
+        .field-info {
+            color: #999;
+            font-size: 10px;
+            margin-left: 10px;
+            white-space: nowrap;
+        }
+        
+        @media (max-width: 600px) {
+            .container {
+                padding: 20px;
+            }
+            
+            .header h1 {
+                font-size: 24px;
+            }
+            
+            .button-group {
+                flex-direction: column;
+            }
+            
+            button {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🔐 Password Manager</h1>
+            <p>Secure password generation with GPG encryption & clipboard management</p>
+        </div>
+        
+        <!-- Generate Password Section -->
+        <div class="password-section">
+            <div class="section-title">1. Generate Random Password</div>
+            <div class="input-group">
+                <input type="number" id="passwordLength" value="16" min="1" max="256" placeholder="Password length">
+                <button class="btn-primary" onclick="generatePassword()">Generate Password</button>
+            </div>
+            <div id="passwordDisplay" class="password-display" style="display: none;"></div>
+            <div id="statusGenerate" class="status-message"></div>
+        </div>
+        
+        <!-- Encrypt Section -->
+        <div class="password-section">
+            <div class="section-title">2. Encrypt Password with GPG</div>
+            <div class="button-group">
+                <button class="btn-primary" onclick="encryptPassword()">Encrypt</button>
+                <button class="btn-secondary" onclick="toggleEncryptedDisplay()" id="toggleBtn" style="display: none;">View Encrypted</button>
+            </div>
+            <div id="encryptedDisplay" class="encrypted-display" style="display: none;"></div>
+            <div id="statusEncrypt" class="status-message"></div>
+        </div>
+        
+        <!-- Clipboard Section -->
+        <div class="password-section">
+            <div class="section-title">3. Clipboard Management</div>
+            <div class="button-group">
+                <button class="btn-success" onclick="copyToClipboard()">Copy to Clipboard</button>
+            </div>
+            <p style="font-size: 11px; color: #666; margin-top: 10px;">💡 Tip: Generate → Encrypt → Copy to Clipboard → Right-click any password field below to decrypt</p>
+            <div id="statusClipboard" class="status-message"></div>
+        </div>
+        
+        <!-- Sanitization Section -->
+        <div class="password-section">
+            <div class="section-title">4. Clipboard Sanitization</div>
+            <p style="font-size: 12px; color: #666; margin-bottom: 10px;">Generates 5 random 264-character strings to sanitize clipboard. Click each button to copy them.</p>
+            <button class="btn-danger" onclick="sanitizeClipboard()">Generate Sanitization Strings</button>
+            <div id="sanitizationLog" class="sanitization-log" style="display: none;"></div>
+            <div id="statusSanitize" class="status-message"></div>
+        </div>
+        
+        <!-- Password Input Fields for Right-Click Decrypt -->
+        <div class="password-section">
+            <div class="section-title">5. Password Fields (Right-Click to Decrypt)</div>
+            <p style="font-size: 12px; color: #666; margin-bottom: 15px;">Right-click on any field below to decrypt password from clipboard</p>
+            <div id="passwordFieldsContainer"></div>
+        </div>
+    </div>
+    
+    <script>
+        // Utility function to show status messages
+        function showStatus(elementId, message, type = 'info') {
+            const element = document.getElementById(elementId);
+            element.textContent = message;
+            element.className = `status-message show ${type}`;
+            setTimeout(() => {
+                element.classList.remove('show');
+            }, 5000);
+        }
+        
+        // Generate random password
+        function generatePassword() {
+            const length = parseInt(document.getElementById('passwordLength').value);
+            
+            if (isNaN(length) || length < 1) {
+                showStatus('statusGenerate', '❌ Please enter a valid length (minimum 1)', 'error');
+                return;
+            }
+            
+            fetch('/api/generate-password', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ length: length })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    const display = document.getElementById('passwordDisplay');
+                    display.textContent = data.masked;
+                    display.style.display = 'block';
+                    document.getElementById('toggleBtn').style.display = 'inline-block';
+                    showStatus('statusGenerate', `✓ Generated ${data.length}-character password`, 'success');
+                } else {
+                    showStatus('statusGenerate', `❌ ${data.error}`, 'error');
+                }
+            })
+            .catch(error => {
+                showStatus('statusGenerate', `❌ Error: ${error.message}`, 'error');
+            });
+        }
+        
+        // Encrypt password
+        function encryptPassword() {
+            fetch('/api/encrypt-password', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    document.getElementById('encryptedDisplay').textContent = data.preview;
+                    document.getElementById('toggleBtn').style.display = 'inline-block';
+                    showStatus('statusEncrypt', `✓ Password encrypted (${data.length} bytes)`, 'success');
+                } else {
+                    showStatus('statusEncrypt', `❌ ${data.error}`, 'error');
+                }
+            })
+            .catch(error => {
+                showStatus('statusEncrypt', `❌ Error: ${error.message}`, 'error');
+            });
+        }
+        
+        // Toggle view of encrypted password
+        function toggleEncryptedDisplay() {
+            const display = document.getElementById('encryptedDisplay');
+            const btn = document.getElementById('toggleBtn');
+            if (display.style.display === 'none') {
+                // Fetch full encrypted data
+                fetch('/api/copy-to-clipboard')
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            display.textContent = data.data;
+                            display.style.display = 'block';
+                            btn.textContent = 'Hide Encrypted';
+                        }
+                    });
+            } else {
+                display.style.display = 'none';
+                btn.textContent = 'View Encrypted';
+            }
+        }
+        
+        // Copy encrypted password to clipboard
+        function copyToClipboard() {
+            fetch('/api/copy-to-clipboard')
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        navigator.clipboard.writeText(data.data).then(() => {
+                            showStatus('statusClipboard', '✓ Encrypted password copied to clipboard!', 'success');
+                        }).catch(err => {
+                            // Fallback: show in textarea if clipboard fails
+                            console.log('Clipboard write failed, showing fallback...');
+                            const fallbackText = prompt('Here is your encrypted password. Copy it:', data.data);
+                            showStatus('statusClipboard', '⚠ Fallback: Password shown in dialog (copy and paste manually)', 'info');
+                        });
+                    } else {
+                        showStatus('statusClipboard', `❌ ${data.error}`, 'error');
+                    }
+                })
+                .catch(error => {
+                    showStatus('statusClipboard', `❌ Error: ${error.message}`, 'error');
+                });
+        }
+        
+        // Sanitize clipboard
+        function sanitizeClipboard() {
+            const logElement = document.getElementById('sanitizationLog');
+            logElement.style.display = 'block';
+            logElement.innerHTML = 'Generating 5 sanitization strings (264 chars each)...\n\n';
+            
+            fetch('/api/sanitize-clipboard', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    let logText = '';
+                    data.sanitized_strings.forEach((str, index) => {
+                        logText += `String ${index + 1}: ${str.substring(0, 40)}... (264 chars)\n`;
+                        logElement.innerHTML += `✓ Sanitization string ${index + 1}/5 generated\n`;
+                    });
+                    
+                    logElement.innerHTML += '\n✅ All sanitization strings generated!\n';
+                    logElement.innerHTML += 'Click the button below to copy each one:\n\n';
+                    
+                    // Create buttons for each sanitization string
+                    data.sanitized_strings.forEach((str, index) => {
+                        const btn = document.createElement('button');
+                        btn.className = 'btn-secondary';
+                        btn.style.marginTop = '5px';
+                        btn.style.marginRight = '5px';
+                        btn.textContent = `Copy String ${index + 1}`;
+                        btn.onclick = function(e) {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            navigator.clipboard.writeText(str).then(() => {
+                                btn.textContent = `✓ Copied (${index + 1}/5)`;
+                                btn.style.background = '#d1fae5';
+                                btn.style.color = '#065f46';
+                            }).catch(err => {
+                                console.log('Clipboard write failed, showing fallback...');
+                                // Fallback: show in a prompt if clipboard fails
+                                prompt(`Copy this sanitization string (${index + 1}/5):\n\n`, str);
+                            });
+                        };
+                        logElement.appendChild(btn);
+                    });
+                    
+                    showStatus('statusSanitize', '✓ Clipboard sanitization strings ready! Click buttons to copy.', 'success');
+                } else {
+                    showStatus('statusSanitize', `❌ ${data.error}`, 'error');
+                }
+            })
+            .catch(error => {
+                showStatus('statusSanitize', `❌ Error: ${error.message}`, 'error');
+            });
+        }
+        
+        // Keyboard shortcuts
+        document.addEventListener('keypress', function(event) {
+            if (event.key === 'Enter') {
+                const focused = document.activeElement;
+                if (focused.id === 'passwordLength') {
+                    generatePassword();
+                }
+            }
+        });
+        
+        // Welcome message on load
+        window.addEventListener('load', function() {
+            console.log('🔐 Password Manager loaded successfully');
+            console.log('Features: Random password generation, GPG encryption, clipboard management');
+            
+            // Initialize password fields
+            initializePasswordFields();
+        });
+        
+        // Initialize password fields with right-click handlers
+        function initializePasswordFields() {
+            const container = document.getElementById('passwordFieldsContainer');
+            
+            for (let i = 1; i <= 5; i++) {
+                const fieldDiv = document.createElement('div');
+                fieldDiv.className = 'password-field';
+                fieldDiv.innerHTML = `
+                    <span class="field-label">Password ${i}:</span>
+                    <input type="text" class="field-input password-input-field" 
+                           id="passField${i}" 
+                           placeholder="Right-click to decrypt from clipboard"
+                           readonly>
+                    <span class="field-info">Right-click ▼</span>
+                `;
+                
+                const inputField = fieldDiv.querySelector('.field-input');
+                
+                // Right-click handler
+                inputField.addEventListener('contextmenu', function(e) {
+                    e.preventDefault();
+                    decryptOnRightClick(inputField);
+                });
+                
+                container.appendChild(fieldDiv);
+            }
+        }
+        
+        // Decrypt on right-click
+        function decryptOnRightClick(inputField) {
+            navigator.clipboard.readText().then(text => {
+                fetch('/api/decrypt-from-clipboard', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ data: text })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        // Paste masked password into the field
+                        inputField.value = data.masked;
+                        inputField.style.color = '#667eea';
+                        inputField.style.fontWeight = 'bold';
+                        
+                        showStatus('statusClipboard', `✓ Password pasted (${data.length} chars). Sanitizing clipboard...`, 'success');
+                        
+                        // Auto-sanitize clipboard after a brief delay
+                        setTimeout(sanitizeClipboardAuto, 300);
+                    } else {
+                        showStatus('statusClipboard', `❌ ${data.error}`, 'error');
+                    }
+                })
+                .catch(error => {
+                    showStatus('statusClipboard', `❌ Error: ${error.message}`, 'error');
+                });
+            }).catch(err => {
+                showStatus('statusClipboard', '❌ Could not read clipboard. Make sure you have clipboard permissions and the window is focused.', 'error');
+            });
+        }
+        
+        // Auto-sanitize without user interaction (internal use)
+        function sanitizeClipboardAuto() {
+            fetch('/api/sanitize-clipboard', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Silently sanitize - copy each string to clipboard with error handling
+                    let copyCount = 0;
+                    const strings = data.sanitized_strings;
+                    
+                    // Copy strings rapidly (simulating clipboard overwrite)
+                    strings.forEach((str, index) => {
+                        setTimeout(() => {
+                            navigator.clipboard.writeText(str)
+                                .then(() => {
+                                    copyCount++;
+                                    console.log(`✓ Clipboard sanitized (${index + 1}/5)`);
+                                })
+                                .catch(err => {
+                                    // Silently handle clipboard errors - don't show console errors
+                                    // This is expected in some security contexts
+                                });
+                        }, index * 100);
+                    });
+                    
+                    setTimeout(() => {
+                        console.log('✓ Clipboard sanitization process complete');
+                    }, 600);
+                }
+            })
+            .catch(error => {
+                // Silently fail - don't disrupt user experience
+                console.debug('Sanitization background process skipped');
+            });
+        }
+    </script>
+</body>
+</html>

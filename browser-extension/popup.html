@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Password Manager Extension</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            width: 400px;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 0;
+            color: #333;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            text-align: center;
+            border-bottom: 3px solid white;
+        }
+        
+        .header h1 {
+            font-size: 24px;
+            margin-bottom: 5px;
+        }
+        
+        .header p {
+            font-size: 12px;
+            opacity: 0.9;
+        }
+        
+        .content {
+            background: white;
+            padding: 20px;
+        }
+        
+        .status {
+            background: #f0f9ff;
+            border-left: 4px solid #3b82f6;
+            padding: 12px;
+            border-radius: 6px;
+            margin-bottom: 15px;
+            font-size: 13px;
+            color: #0c2d6b;
+        }
+        
+        .status.success {
+            background: #d1fae5;
+            border-left-color: #10b981;
+            color: #065f46;
+        }
+        
+        .status.error {
+            background: #fee2e2;
+            border-left-color: #ef4444;
+            color: #7f1d1d;
+        }
+        
+        .features {
+            background: #f9fafb;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            font-size: 12px;
+            line-height: 1.8;
+        }
+        
+        .features h3 {
+            color: #667eea;
+            font-size: 13px;
+            margin-bottom: 10px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .features li {
+            margin-bottom: 8px;
+            color: #666;
+        }
+        
+        .features li:before {
+            content: "✓ ";
+            color: #10b981;
+            font-weight: bold;
+            margin-right: 5px;
+        }
+        
+        .buttons {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+        
+        button {
+            flex: 1;
+            padding: 10px;
+            border: none;
+            border-radius: 6px;
+            font-weight: 600;
+            cursor: pointer;
+            font-size: 12px;
+            transition: all 0.3s;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+        }
+        
+        .btn-secondary {
+            background: #e8e8ff;
+            color: #667eea;
+        }
+        
+        .btn-secondary:hover {
+            background: #d8d8ff;
+            transform: translateY(-2px);
+        }
+        
+        .info-box {
+            background: #fffbeb;
+            border-left: 4px solid #f59e0b;
+            padding: 12px;
+            border-radius: 6px;
+            font-size: 12px;
+            color: #92400e;
+            line-height: 1.6;
+        }
+        
+        .keyboard-hints {
+            background: #f3f4f6;
+            padding: 12px;
+            border-radius: 6px;
+            font-size: 11px;
+            color: #666;
+            margin-top: 15px;
+            border: 1px solid #e5e7eb;
+        }
+        
+        .keyboard-hints strong {
+            color: #333;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>🔐 Password Manager</h1>
+        <p>GPG Decryption Extension</p>
+    </div>
+    
+    <div class="content">
+        <div id="statusBox" class="status" style="display: none;"></div>
+        
+        <div class="features">
+            <h3>✨ How It Works</h3>
+            <ul>
+                <li>Go to any website with a password field</li>
+                <li>Copy GPG-encrypted password to clipboard</li>
+                <li>Right-click on password field</li>
+                <li>Password decrypts and pastes automatically</li>
+                <li>Clipboard sanitized with random strings</li>
+            </ul>
+        </div>
+        
+        <div class="buttons">
+            <button class="btn-primary" onclick="openPasswordManager()">Open Web App</button>
+            <button class="btn-secondary" onclick="checkStatus()">Check Status</button>
+        </div>
+        
+        <div class="info-box">
+            💡 <strong>Tip:</strong> Right-click on password fields (type="password") or text input fields across any website to decrypt and paste automatically!
+        </div>
+        
+        <div class="keyboard-hints">
+            <strong>Server Status:</strong> <span id="serverStatus">Checking...</span>
+        </div>
+    </div>
+    
+    <script src="popup.js"></script>
+</body>
+</html>
